@@ -21,6 +21,8 @@ import { WorkflowStore } from '../../../service/workflow/workflow.store';
 import { AutoUnsubscribe } from '../../../shared/decorator/autoUnsubscribe';
 import { WorkflowNodeHookComponent } from '../../../shared/workflow/wnode/hook/hook.component';
 import { WorkflowWNodeComponent } from '../../../shared/workflow/wnode/wnode.component';
+import { CytoscapeOptions, ElementsDefinition } from 'cytoscape';
+import { StatusIconComponent } from 'app/shared/status/status.component';
 
 @Component({
     selector: 'app-workflow-graph',
@@ -28,7 +30,8 @@ import { WorkflowWNodeComponent } from '../../../shared/workflow/wnode/wnode.com
     styleUrls: ['./workflow.graph.scss'],
     entryComponents: [
         WorkflowWNodeComponent,
-        WorkflowNodeHookComponent
+        WorkflowNodeHookComponent,
+        StatusIconComponent
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -45,7 +48,7 @@ export class WorkflowGraphComponent implements AfterViewInit {
         this.workflow = data;
         this.nodesComponent = new Map<string, ComponentRef<WorkflowWNodeComponent>>();
         this.hooksComponent = new Map<string, ComponentRef<WorkflowNodeHookComponent>>();
-        this.changeDisplay();
+        //this.changeDisplay();
     }
 
     @Input() project: Project;
@@ -54,7 +57,7 @@ export class WorkflowGraphComponent implements AfterViewInit {
     set direction(data: string) {
         this._direction = data;
         this._workflowStore.setDirection(this.project.key, this.workflow.name, this.direction);
-        this.changeDisplay();
+        //this.changeDisplay();
     }
     get direction() { return this._direction; }
 
@@ -68,6 +71,9 @@ export class WorkflowGraphComponent implements AfterViewInit {
     g: dagreD3.graphlib.Graph;
     render = new dagreD3.render();
 
+    //graphData = { nodes: [], edges: [], style: [], layout:{}};
+    graphData: CytoscapeOptions;
+
     linkWithJoin = false;
 
     nodesComponent = new Map<string, ComponentRef<WorkflowWNodeComponent>>();
@@ -76,30 +82,100 @@ export class WorkflowGraphComponent implements AfterViewInit {
     zoom: d3.ZoomBehavior<Element, {}>;
     svg: any;
 
+    @ViewChild('canvas', { read: ViewContainerRef, static: false})
+    canvasContainer: any;
+
     constructor(
         private componentFactoryResolver: ComponentFactoryResolver,
         private _cd: ChangeDetectorRef,
         private _workflowStore: WorkflowStore,
         private _workflowCore: WorkflowCoreService,
-    ) { }
+    ) {}
 
     ngAfterViewInit(): void {
-        this.ready = true;
         this.changeDisplay();
         this._cd.markForCheck();
     }
 
     changeDisplay(): void {
-        if (!this.ready && this.workflow) {
+        if (!this.workflow) {
             return;
         }
-        // FIXME add a delay for dom container to take good height, otherwise the workflow will not be centered
-        setTimeout(() => { this.initWorkflow(); }, 1);
+        this.initWorkflow();
+    }
+
+    initWorkflowCanvas() {
+        this.graphData =  {
+            elements: {
+                nodes: [],
+                edges: [],
+            },
+            style: [ // the stylesheet for the graph
+                {
+                    selector: 'node',
+                    style: {
+                        'background-color': '#666',
+                        'width': '180px',
+                        'height': '60px'
+                    }
+                },
+
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 3,
+                        'line-color': '#ccc',
+                        'target-arrow-color': '#ccc',
+                        'target-arrow-shape': 'triangle'
+                    }
+                }
+            ],
+            layout: {
+                name: 'breadthfirst'
+            }
+        };
+
+        let nodes = Workflow.getAllNodes(this.workflow);
+        nodes.forEach( n => {
+            (<ElementsDefinition>this.graphData.elements).nodes.push({
+                data: { id: n.id.toString(), node: n}
+            });
+
+            if (n.triggers) {
+                n.triggers.forEach(t => {
+                    (<ElementsDefinition>this.graphData.elements).edges.push({
+                        data: { id: t.id.toString(), source: n.id.toString(), target: t.child_node.id.toString() }
+                    });
+                });
+            }
+            if (n.parents) {
+                n.parents.forEach(p => {
+                    (<ElementsDefinition>this.graphData.elements).edges.push({
+                        data: { id: p.id.toString(), source: p.parent_id.toString(), target: n.id.toString() }
+                    });
+                });
+            }
+        });
+        this.ready = true;
+        this._cd.detectChanges();
     }
 
     initWorkflow() {
+        if (true) {
+            this.initWorkflowCanvas();
+            return
+        }
+        this.svg = d3.select('svg');
+        // Run the renderer. This is what draws the final graph.
+        let oldG = this.svg.select('g');
+        if (oldG) {
+            oldG.remove();
+        }
+        let g = this.svg.append('g');
+
         // https://github.com/cpettitt/dagre/wiki#configuring-the-layout
         this.g = new dagreD3.graphlib.Graph().setGraph({ rankdir: this.direction, nodesep: 10, ranksep: 15, edgesep: 5 });
+
 
         // Create all nodes
         if (this.workflow.workflow_data && this.workflow.workflow_data.node) {
@@ -110,16 +186,6 @@ export class WorkflowGraphComponent implements AfterViewInit {
                 this.createNode(j);
             });
         }
-
-        // Run the renderer. This is what draws the final graph.
-        this.svg = d3.select('svg');
-        let oldG = this.svg.select('g');
-        if (oldG) {
-            oldG.remove();
-        }
-        let g = this.svg.append('g');
-
-        this.render(g, this.g);
 
         this.zoom = d3.zoom().scaleExtent([
             WorkflowGraphComponent.minScale,
@@ -223,7 +289,6 @@ export class WorkflowGraphComponent implements AfterViewInit {
             shape: shape,
             labelStyle: `width: ${width}px;height: ${height}px;`
         });
-
         this.createHookNode(node);
 
         if (node.triggers) {
@@ -256,7 +321,7 @@ export class WorkflowGraphComponent implements AfterViewInit {
 
     createNodeComponent(node: WNode): ComponentRef<WorkflowWNodeComponent> {
         let nodeComponentFactory = this.componentFactoryResolver.resolveComponentFactory(WorkflowWNodeComponent);
-        let componentRef = nodeComponentFactory.create(this.svgContainer.parentInjector);
+        let componentRef = nodeComponentFactory.create(this.canvasContainer.injector);
         componentRef.instance.node = node;
         componentRef.instance.workflow = this.workflow;
         componentRef.instance.project = this.project;

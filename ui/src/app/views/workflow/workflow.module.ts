@@ -23,6 +23,7 @@ import {WorkflowShowComponent} from './show/workflow.component';
 import {WorkflowSidebarCodeComponent} from './sidebar/code/sidebar.code.component';
 import {WorkflowComponent} from './workflow.component';
 import {workflowRouting} from './workflow.routing';
+import { CytoscapeModule } from 'ngx-cytoscape';
 
 @NgModule({
     declarations: [
@@ -51,7 +52,8 @@ import {workflowRouting} from './workflow.routing';
     ],
     imports: [
         SharedModule,
-        workflowRouting
+        workflowRouting,
+        CytoscapeModule
     ],
     schemas: [
         CUSTOM_ELEMENTS_SCHEMA,

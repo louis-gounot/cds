@@ -59,6 +59,9 @@
               "node_modules/sanitize-html/dist/sanitize-html.min.js",
               "node_modules/duration-js/duration.js",
               "node_modules/prismjs/prism.js",
+              "node_modules/cytoscape/dist/cytoscape.min.js",
+              "node_modules/cytoscape-dagre/cytoscape-dagre.js",
+              "node_modules/cytoscape-klay/cytoscape-klay.js",
               "src/assets/js/pacman.js"
             ]
           },

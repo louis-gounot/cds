@@ -1,4 +1,21 @@
 @import '../../../../common';
+#canvasContainers, app-cytoscape {
+  width: inherit;
+  height: inherit;
+  display: block;
+}
+
+/*
+app-cytoscape {
+  height: 50vh;
+  float: left;
+  position: relative;
+  border: solid #21c0c0;
+  width: 50em;
+}
+
+ */
+
 .svg-wrapper {
   width: 100%;
   display: block;

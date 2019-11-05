@@ -111,6 +111,7 @@ import { WorkflowWNodePipelineComponent } from './workflow/wnode/pipeline/wnode.
 import { WorkflowWNodeComponent } from './workflow/wnode/wnode.component';
 import { ZoneContentComponent } from './zone/zone-content/content.component';
 import { ZoneComponent } from './zone/zone.component';
+import { CytoscapeComponent } from 'app/shared/workflow/graph/cytoscape.component';
 
 @NgModule({
     imports: [
@@ -144,6 +145,7 @@ import { ZoneComponent } from './zone/zone.component';
         ConditionsComponent,
         ConfirmButtonComponent,
         ConfirmModalComponent,
+        CytoscapeComponent,
         CutPipe,
         DataTableComponent,
         DeleteButtonComponent,
@@ -250,6 +252,7 @@ import { ZoneComponent } from './zone/zone.component';
         CommitListComponent,
         CommonModule,
         ClipboardModule,
+        CytoscapeComponent,
         CutPipe,
         GroupFormComponent,
         DeleteButtonComponent,

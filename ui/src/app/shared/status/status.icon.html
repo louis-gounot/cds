@@ -1,4 +1,4 @@
-<div class="status-icon" [ngSwitch]="status">
+<!--div class="status-icon" [ngSwitch]="status">
     <div class="wrapper">
         <ng-container *ngSwitchCase="pipelineStatusEnum.BUILDING">
             <div *ngIf="loader" class="ui small active inline blue loader">
@@ -17,4 +17,12 @@
         <i class="wait blue icon" *ngSwitchCase="pipelineStatusEnum.WAITING"></i>
         <i class="stop grey icon" *ngSwitchDefault></i>
     </div>
+</div-->
+<div *ngIf="status === 'Building'">
+    Je suis un composant angular
 </div>
+<div *ngIf="status === 'Success'">
+    Je suis en success
+</div>
+Fail
+

@@ -79,9 +79,11 @@ export class WorkflowWNodeComponent implements OnInit {
         private _toast: ToastService,
         private _translate: TranslateService,
         private _cd: ChangeDetectorRef
-    ) { }
+    ) {
+    }
 
     ngOnInit(): void {
+        console.log('ngOnInt');
         this.sub = this._store.select(WorkflowState.getCurrent()).subscribe((s: WorkflowStateModel) => {
             this.readonly = !s.canEdit;
             this._cd.markForCheck();
