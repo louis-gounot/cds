@@ -27,9 +27,10 @@ mod:
 	@echo "removing file /vendor/github.com/docker/docker/distribution/oci.go..." && rm -f vendor/github.com/docker/docker/distribution/oci.go
 	@echo "removing subpackages vendors" &&  rm -rf vendor/github.com/ovh/cds
 
-install:
+goinstall:
 	go install $$(go list ./...)
 
 build:
 	$(MAKE) build -C engine
 	$(MAKE) build -C cli/cdsctl
+	$(MAKE) build -C engine/worker
